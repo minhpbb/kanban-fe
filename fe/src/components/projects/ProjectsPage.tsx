@@ -25,26 +25,22 @@ const ProjectsPage: React.FC = () => {
   };
 
   const handleEditProject = (project: Project) => {
-    // Navigate to project detail page for editing
-    window.location.href = `/projects/${project.id}`;
+    // TODO: Implement edit modal instead of redirecting
+    console.log('Edit project:', project);
+    alert('Edit functionality will be implemented soon!');
   };
 
   const handleDeleteProject = async (projectId: number) => {
-    Modal.confirm({
-      title: 'Delete Project',
-      content: 'Are you sure you want to delete this project? This action cannot be undone.',
-      okText: 'Yes, Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
-        try {
-          await dispatch(deleteProject(projectId)).unwrap();
-          success('Project deleted successfully');
-        } catch (error) {
-          showError(error as string);
-        }
-      },
-    });
+    const confirmed = window.confirm('Are you sure you want to delete this project? This action cannot be undone.');
+    
+    if (confirmed) {
+      try {
+        await dispatch(deleteProject(projectId)).unwrap();
+        success('Project deleted successfully');
+      } catch (error) {
+        showError(error as string);
+      }
+    }
   };
 
   const handleCreateSuccess = () => {

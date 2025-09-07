@@ -1,8 +1,8 @@
 'use client';
 
 import { Project } from '@/types/api';
-import { CalendarOutlined, DeleteOutlined, EditOutlined, MoreOutlined } from '@ant-design/icons';
-import { Button, Card, Dropdown, Tag } from 'antd';
+import { CalendarOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, Card, Tag } from 'antd';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { formatDate, formatDateRange } from '@/utils/dateUtils';
@@ -41,21 +41,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
     router.push(`/projects/${project.id}`);
   };
 
-  const menuItems = [
-    {
-      key: 'edit',
-      icon: <EditOutlined />,
-      label: 'Edit project',
-      onClick: () => onEdit(project)
-    },
-    {
-      key: 'delete',
-      icon: <DeleteOutlined />,
-      label: 'Delete project',
-      danger: true,
-      onClick: () => onDelete(project.id)
-    }
-  ];
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(project);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(project.id);
+  };
+
 
   return (
     <Card
@@ -78,21 +75,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) 
             </div>
           </div>
           
-          {/* Three dots menu */}
-          <Dropdown 
-            menu={{ items: menuItems }} 
-            trigger={['click']} 
-            placement="bottomRight"
-            overlayStyle={{ zIndex: 1050 }}
-          >
+          {/* Action buttons */}
+          <div className="flex items-center space-x-1">
             <Button 
               type="text" 
-              icon={<MoreOutlined />}
-              className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full flex-shrink-0"
-              onClick={(e) => e.stopPropagation()}
+              icon={<EditOutlined />}
+              className="text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full flex-shrink-0"
+              onClick={handleEditClick}
               size="small"
+              title="Edit project"
             />
-          </Dropdown>
+            <Button 
+              type="text" 
+              icon={<DeleteOutlined />}
+              className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full flex-shrink-0"
+              onClick={handleDeleteClick}
+              size="small"
+              title="Delete project"
+            />
+          </div>
         </div>
 
         {/* Project Description */}

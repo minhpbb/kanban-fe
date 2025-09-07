@@ -192,7 +192,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess, redirectTo = '/h
       <div className="text-center mt-6">
         <p className="text-gray-600">
           Already have an account?{' '}
-          <Button type="link" className="p-0 h-auto font-medium">
+          <Button 
+            type="link" 
+            className="p-0 h-auto font-medium"
+            onClick={() => router.push('/login')}
+          >
             Sign in
           </Button>
         </p>

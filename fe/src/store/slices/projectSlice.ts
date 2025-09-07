@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { Project } from '@/types/project';
+import { Project, ProjectActivity } from '@/types/project';
 import { projectService, CreateProjectData, UpdateProjectData, ProjectListParams, AddMemberData } from '@/services';
 
 // Helper function to extract error message
@@ -185,14 +185,14 @@ const projectSlice = createSlice({
     removeProjectFromList: (state, action: PayloadAction<number>) => {
       state.projects = state.projects.filter(p => p.id !== action.payload);
     },
-    addActivity: (state, action: PayloadAction<{ projectId: number; activity: any }>) => {
+    addActivity: (state, action: PayloadAction<{ projectId: number; activity: unknown }>) => {
       // Add activity to the current project's activities if it matches
       if (state.currentProject && state.currentProject.id === action.payload.projectId) {
         if (!state.currentProject.activities) {
           state.currentProject.activities = [];
         }
         // Add to beginning of array (most recent first)
-        state.currentProject.activities.unshift(action.payload.activity);
+        state.currentProject.activities.unshift(action.payload.activity as ProjectActivity);
         // Keep only last 50 activities
         if (state.currentProject.activities.length > 50) {
           state.currentProject.activities = state.currentProject.activities.slice(0, 50);

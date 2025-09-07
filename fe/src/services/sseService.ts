@@ -14,7 +14,7 @@ class SSEService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private listeners: Map<string, Set<(data: SSEMessage) => void>> = new Map();
-  private activityListeners: Set<(data: any) => void> = new Set();
+  private activityListeners: Set<(data: { type: string; activity: unknown; projectId: number }) => void> = new Set();
 
   connect(userId: number): void {
     // If already connected to the same user, don't reconnect
@@ -157,7 +157,7 @@ class SSEService {
   }
 
   // Subscribe to activity updates
-  onActivityUpdate(callback: (data: any) => void): () => void {
+  onActivityUpdate(callback: (data: { type: string; activity: unknown; projectId: number }) => void): () => void {
     this.activityListeners.add(callback);
     return () => {
       this.activityListeners.delete(callback);

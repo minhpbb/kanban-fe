@@ -11,7 +11,6 @@ Modern React/Next.js application for project management with real-time collabora
 - **State Management**: Redux Toolkit
 - **HTTP Client**: Axios
 - **Real-time**: Server-Sent Events (SSE)
-- **Drag & Drop**: @dnd-kit
 
 ## 🚀 Setup
 
@@ -32,6 +31,7 @@ npm install
 npm run dev
 ```
 
+
 ## 🎯 Key Features
 
 ### 🏠 Dashboard
@@ -47,7 +47,7 @@ npm run dev
 - **Member Management**: Add/remove members with role-based permissions
 
 ### 📊 Kanban Boards
-- **Drag & Drop**: Drag and drop tasks between columns using @dnd-kit
+- **Drag & Drop**: Drag and drop tasks between columns using HTML5 API
 - **Customizable Columns**: Create, edit, and delete Kanban columns
 - **Task Cards**: Display task information on interactive cards
 - **Real-time Updates**: Live updates when changes occur
@@ -59,43 +59,68 @@ npm run dev
 - **Comments System**: Collaborative commenting on tasks
 - **File Attachments**: Attach files to tasks
 
-### 🔔 Real-time Notifications
-- **Notification Bell**: Real-time notification system with unread count
-- **SSE Integration**: Server-Sent Events for instant updates
-- **Activity Logs**: Real-time activity tracking across projects
-- **Auto-cleanup**: Automatic task unassignment when members are removed
-
 ## 📱 Main Screens
 
 ### 🏠 Home Page (Dashboard)
-- **Layout**: Sidebar navigation + Main content area
-- **Sidebar**: Navigation menu and project list
-- **Main**: Project statistics, recent activities, and quick actions
-- **Header**: Logo, search, notification bell, and user avatar
+- **Layout**: Sidebar + Main content
+- **Sidebar**: Navigation menu, project list
+- **Main**: Overview statistics, recent activities
+- **Header**: Logo, search, notification bell, user avatar
 
 ### 📋 Projects Page
 - **Layout**: Grid view of project cards
-- **Project Card**: Avatar, name, description, task count, and members
-- **Actions**: "Add New Project" button and dropdown menu for each project
-- **Filter**: Filter by status and search functionality
+- **Project Card**: Avatar, name, description, task count, members
+- **Actions**: "Add New Project" button, dropdown menu for each project
+- **Filter**: Filter by status, search functionality
 
 ### 📊 Project Detail Page
-- **Tabs**: Overview, Members, and Task Management
-- **Overview Tab**: Project statistics, charts, and recent activities
-- **Members Tab**: Member list, pending invitations, and role management
-- **Task Management Tab**: Kanban board with drag & drop functionality
+- **Tabs**: Overview, Members, Task Management
+- **Overview Tab**: Project statistics, charts, recent activities
+- **Members Tab**: Member list, pending invitations
+- **Task Management Tab**: Kanban board with drag & drop
 
 ### 📝 Kanban Board
 - **Columns**: Status columns (To Do, In Progress, Done, etc.)
-- **Task Cards**: Display in respective columns with essential information
-- **Drag & Drop**: Move tasks between columns seamlessly
-- **Add Task**: "+" button to create new tasks
-- **Add Column**: "+" button to create new columns
+- **Task Cards**: Display in each column with basic information
+- **Drag & Drop**: Move tasks between columns
+- **Add Task**: "+" button to create new task
+- **Add Column**: "+" button to create new column
 
 ### 🔔 Notification System
 - **Icon**: Bell icon with unread notification badge
 - **Dropdown**: Notification list when clicked
 - **Real-time**: Live updates when new notifications arrive
-- **Mark as Read**: Individual and bulk mark as read functionality
 
+## 📸 Screenshots
 
+### 🏠 Home Screen
+![Home Screen](./public/homeScreen.png)
+*Home page displaying dashboard with sidebar navigation, overview statistics and recent activities*
+
+### 🔐 Login Screen
+![Login Screen](./public/loginScreen.png)
+*Login page with authentication form and link to registration page*
+
+### 📋 Projects Screen
+![Projects Screen](./public/projectScreen.png)
+*Projects page with grid view of project cards and "Add New Project" button*
+
+### 📊 Project Overview
+![Project Overview](./public/projectOverview.png)
+*Overview tab in project detail page showing statistics, charts and project information*
+
+### 👥 Project Members
+![Project Members](./public/projectMembers.png)
+*Members tab managing project members with member list and add new member form*
+
+### 📝 Project Tasks (Kanban Board)
+![Project Tasks](./public/projectTasks.png)
+*Task Management tab with Kanban board, drag & drop functionality and task management*
+
+### 🔔 Recent Activities
+![Recent Activities](./public/projectRencentActivites.png)
+*Modal displaying recent activities in the project with filters and search*
+
+### 🔔 Notifications
+![Notifications](./public/notification.png)
+*Real-time notification system with bell icon and dropdown notification list*

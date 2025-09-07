@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 import { Card, Avatar, Tag, Button, Statistic, Row, Col, Modal, DatePicker, Spin, Alert, Select, Input } from 'antd';
 import { 
   UserOutlined, 
@@ -35,7 +36,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
   // Filter states
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all');
   const [searchFilter, setSearchFilter] = useState<string>('');
-  const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
   
   // Use Redux state for activities instead of local state
   const allActivities = currentProject?.activities || [];
@@ -120,19 +121,19 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
     }
   };
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'task_moved': return '🔄';
-      case 'task_created': return '➕';
-      case 'task_updated': return '✏️';
-      case 'task_deleted': return '🗑️';
-      case 'member_added': return '👥';
-      case 'member_removed': return '👋';
-      case 'project_created': return '📁';
-      case 'project_updated': return '📝';
-      default: return '📋';
-    }
-  };
+  // const getActivityIcon = (type: string) => {
+  //   switch (type) {
+  //     case 'task_moved': return '🔄';
+  //     case 'task_created': return '➕';
+  //     case 'task_updated': return '✏️';
+  //     case 'task_deleted': return '🗑️';
+  //     case 'member_added': return '👥';
+  //     case 'member_removed': return '👋';
+  //     case 'project_created': return '📁';
+  //     case 'project_updated': return '📝';
+  //     default: return '📋';
+  //   }
+  // };
 
   const getActivityColor = (type: string) => {
     switch (type) {
@@ -344,7 +345,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
             
             <DatePicker.RangePicker
               value={dateRange}
-              onChange={setDateRange}
+              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs, dayjs.Dayjs] | null)}
               size="small"
               placeholder={['Start Date', 'End Date']}
             />

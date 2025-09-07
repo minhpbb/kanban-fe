@@ -112,7 +112,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess, redirectTo = '/home' }
       <div className="text-center mt-6">
         <p className="text-gray-600">
           Don&apos;t have an account?{' '}
-          <Button type="link" className="p-0 h-auto font-medium">
+          <Button 
+            type="link" 
+            className="p-0 h-auto font-medium"
+            onClick={() => router.push('/register')}
+          >
             Sign up
           </Button>
         </p>

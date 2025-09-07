@@ -13,7 +13,7 @@ import { getTaskStats } from '@/utils/taskUtils';
 import {
   PlusOutlined
 } from '@ant-design/icons';
-import { Alert, Button, Card, message, Modal, Spin } from 'antd';
+import { Alert, Button, Card, message, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 interface ProjectTaskManagementProps {

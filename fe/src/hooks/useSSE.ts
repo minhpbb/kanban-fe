@@ -27,7 +27,7 @@ export const useSSE = (userId?: number) => {
     });
 
     // Subscribe to activity updates
-    const unsubscribeActivity = sseService.onActivityUpdate((data: any) => {
+    const unsubscribeActivity = sseService.onActivityUpdate((data: { type: string; activity: unknown; projectId: number }) => {
       console.log('New activity received:', data);
       if (data.type === 'activity' && data.activity) {
         dispatch(addActivity({
