@@ -11,6 +11,7 @@ Modern React/Next.js application for project management with real-time collabora
 - **State Management**: Redux Toolkit
 - **HTTP Client**: Axios
 - **Real-time**: Server-Sent Events (SSE)
+- **Drag & Drop**: @dnd-kit
 
 ## 🚀 Setup
 
@@ -31,93 +32,70 @@ npm install
 npm run dev
 ```
 
-
 ## 🎯 Key Features
 
 ### 🏠 Dashboard
-- **Project Overview**: Hiển thị danh sách tất cả dự án của user
-- **Task Statistics**: Thống kê số lượng task theo trạng thái
-- **Recent Activity**: Hoạt động gần đây trong các dự án
-- **Quick Actions**: Nút tạo dự án mới, tạo task nhanh
+- **Project Overview**: Display all user projects with statistics
+- **Task Statistics**: Task count by status and priority
+- **Recent Activity**: Latest activities across all projects
+- **Quick Actions**: Create new project, quick task creation
 
 ### 📋 Project Management
-- **Project Grid**: Hiển thị dự án dạng lưới với thông tin cơ bản
-- **Project Creation**: Form tạo dự án mới với tên, mô tả, avatar
-- **Project Settings**: Cài đặt dự án, quản lý thành viên
-- **Member Management**: Thêm/xóa thành viên, phân quyền
+- **Project Grid**: Grid view of project cards with basic information
+- **Project Creation**: Create new projects with name, description, and avatar
+- **Project Settings**: Project configuration and member management
+- **Member Management**: Add/remove members with role-based permissions
 
 ### 📊 Kanban Boards
-- **Drag & Drop**: Kéo thả task giữa các cột
-- **Customizable Columns**: Tạo, sửa, xóa cột Kanban
-- **Task Cards**: Hiển thị thông tin task trên card
-- **Real-time Updates**: Cập nhật real-time khi có thay đổi
+- **Drag & Drop**: Drag and drop tasks between columns using @dnd-kit
+- **Customizable Columns**: Create, edit, and delete Kanban columns
+- **Task Cards**: Display task information on interactive cards
+- **Real-time Updates**: Live updates when changes occur
 
 ### 📝 Task Management
-- **Task Creation**: Form tạo task với đầy đủ thông tin
-- **Multiple Assignees**: Gán task cho nhiều người
-- **Task Details**: Modal hiển thị chi tiết task
-- **Comments System**: Bình luận trên task
-- **File Attachments**: Đính kèm file vào task
+- **Task Creation**: Comprehensive task creation form
+- **Multiple Assignees**: Assign tasks to multiple team members
+- **Task Details**: Detailed task view with comments and attachments
+- **Comments System**: Collaborative commenting on tasks
+- **File Attachments**: Attach files to tasks
 
-## 📱 Màn hình chính
+### 🔔 Real-time Notifications
+- **Notification Bell**: Real-time notification system with unread count
+- **SSE Integration**: Server-Sent Events for instant updates
+- **Activity Logs**: Real-time activity tracking across projects
+- **Auto-cleanup**: Automatic task unassignment when members are removed
 
-### 🏠 Trang chủ (Dashboard)
-- **Layout**: Sidebar + Main content
-- **Sidebar**: Menu navigation, danh sách dự án
-- **Main**: Thống kê tổng quan, hoạt động gần đây
-- **Header**: Logo, search, notification bell, user avatar
+## 📱 Main Screens
 
-### 📋 Trang dự án (Projects)
-- **Layout**: Grid view các project cards
-- **Project Card**: Avatar, tên, mô tả, số task, thành viên
-- **Actions**: Nút "Add New Project", dropdown menu cho mỗi project
-- **Filter**: Lọc theo trạng thái, tìm kiếm
+### 🏠 Home Page (Dashboard)
+- **Layout**: Sidebar navigation + Main content area
+- **Sidebar**: Navigation menu and project list
+- **Main**: Project statistics, recent activities, and quick actions
+- **Header**: Logo, search, notification bell, and user avatar
 
-### 📊 Trang chi tiết dự án (Project Detail)
-- **Tabs**: Overview, Members, Task Management
-- **Overview Tab**: Thống kê dự án, biểu đồ, hoạt động gần đây
-- **Members Tab**: Danh sách thành viên, lời mời chờ duyệt
-- **Task Management Tab**: Kanban board với drag & drop
+### 📋 Projects Page
+- **Layout**: Grid view of project cards
+- **Project Card**: Avatar, name, description, task count, and members
+- **Actions**: "Add New Project" button and dropdown menu for each project
+- **Filter**: Filter by status and search functionality
+
+### 📊 Project Detail Page
+- **Tabs**: Overview, Members, and Task Management
+- **Overview Tab**: Project statistics, charts, and recent activities
+- **Members Tab**: Member list, pending invitations, and role management
+- **Task Management Tab**: Kanban board with drag & drop functionality
 
 ### 📝 Kanban Board
-- **Columns**: Các cột trạng thái (To Do, In Progress, Done, etc.)
-- **Task Cards**: Hiển thị trong từng cột với thông tin cơ bản
-- **Drag & Drop**: Kéo thả giữa các cột
-- **Add Task**: Nút "+" để tạo task mới
-- **Add Column**: Nút "+" để tạo cột mới
+- **Columns**: Status columns (To Do, In Progress, Done, etc.)
+- **Task Cards**: Display in respective columns with essential information
+- **Drag & Drop**: Move tasks between columns seamlessly
+- **Add Task**: "+" button to create new tasks
+- **Add Column**: "+" button to create new columns
 
-### 🔔 Notification Bell
-- **Icon**: Bell icon với badge số thông báo chưa đọc
-- **Dropdown**: Danh sách thông báo khi click
-- **Real-time**: Cập nhật real-time khi có thông báo mới
+### 🔔 Notification System
+- **Icon**: Bell icon with unread notification badge
+- **Dropdown**: Notification list when clicked
+- **Real-time**: Live updates when new notifications arrive
+- **Mark as Read**: Individual and bulk mark as read functionality
 
-## 📸 Phần cần ảnh
 
-### 🎯 **Ảnh bắt buộc cần có:**
-
-1. **🏠 Dashboard/Home Page** - `dashboard.png`
-   - Toàn bộ màn hình trang chủ
-   - Hiển thị sidebar, thống kê, hoạt động gần đây
-
-2. **📋 Projects Page** - `projects.png`
-   - Grid view các project cards
-   - Nút "Add New Project"
-   - Dropdown menu trên project card
-
-3. **📊 Project Detail - Overview Tab** - `project-overview.png`
-   - Tab Overview với thống kê, biểu đồ
-   - Thông tin dự án, hoạt động gần đây
-
-4. **👥 Project Detail - Members Tab** - `project-members.png`
-   - Danh sách thành viên
-   - Form thêm thành viên mới
-   - Lời mời chờ duyệt
-
-5. **📝 Project Detail - Task Management Tab** - `kanban-board.png`
-   - Kanban board với các cột
-   - Task cards trong các cột
-   - Nút add task, add column
-
-6. **🔔 Notification Bell** - `notification-bell.png`
-   - Bell icon với badge
-   - Dropdown thông báo khi mở
