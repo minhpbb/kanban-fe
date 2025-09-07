@@ -48,7 +48,7 @@ npm run dev
 | Component | Description | Documentation |
 |-----------|-------------|---------------|
 | 🎨 **Frontend** | Next.js application with React, TypeScript, Ant Design | [📖 Frontend Docs](./fe/README.md) |
-| ⚙️ **Backend** | NestJS API with MySQL, JWT auth, real-time features | [📖 Backend Docs](./be/README.md) |
+| ⚙️ **Backend** | NestJS API with MySQL, JWT auth, real-time features | [📖 Backend Docs](./be/README.md) | 
 
 ## ✨ Key Features
 
