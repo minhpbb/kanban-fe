@@ -20,13 +20,13 @@ interface ProjectTaskManagementProps {
   projectId?: number;
 }
 
-const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({ 
-  projectId = 1 
+const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
+  projectId = 1
 }) => {
   const dispatch = useAppDispatch();
   const { tasks, isLoading, error } = useAppSelector((state) => state.tasks);
   const { boards, currentBoard, columns } = useAppSelector((state) => state.kanban);
-  
+
   // Debug logging
   console.log('ProjectTaskManagement state:', {
     projectId,
@@ -39,7 +39,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
     tasksData: tasks,
     columnsData: columns
   });
-  
+
   // const [viewMode, setViewMode] = useState<'kanban'>('kanban');
   const [isTaskFormVisible, setIsTaskFormVisible] = useState(false);
   const [isColumnFormVisible, setIsColumnFormVisible] = useState(false);
@@ -79,21 +79,25 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
     setIsTaskFormVisible(true);
   };
 
-  const handleDeleteTask = (taskId: number) => {
-    Modal.confirm({
-      title: 'Delete Task',
-      content: 'Are you sure you want to delete this task?',
-      okText: 'Yes, Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
+  const handleDeleteTask = async (taskId: number) => {
+    console.log('Delete task clicked for taskId:', taskId);
+    
+    try {
+      console.log('About to show confirm for task delete');
+      
+      // Use window.confirm since Modal.confirm is not working
+      const confirmed = window.confirm('Are you sure you want to delete this task?');
+      console.log('Window.confirm result for task:', confirmed);
+      
+      if (confirmed) {
         try {
+          console.log('Confirming delete task:', taskId);
           // Optimistically remove task from Redux state
           dispatch({
             type: 'tasks/removeTaskFromList',
             payload: taskId
           });
-          
+
           await dispatch(deleteTask(taskId)).unwrap();
           message.success('Task deleted successfully');
         } catch (error) {
@@ -101,8 +105,30 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
           dispatch(fetchTasks({ projectId }));
           message.error(error as string);
         }
-      },
-    });
+      } else {
+        console.log('Delete task cancelled');
+      }
+    } catch (error) {
+      console.error('Error showing modal:', error);
+      // Fallback to window.confirm
+      const confirmed = window.confirm('Are you sure you want to delete this task?');
+      if (confirmed) {
+        try {
+          // Optimistically remove task from Redux state
+          dispatch({
+            type: 'tasks/removeTaskFromList',
+            payload: taskId
+          });
+
+          await dispatch(deleteTask(taskId)).unwrap();
+          message.success('Task deleted successfully');
+        } catch (error) {
+          // Revert optimistic update on error
+          dispatch(fetchTasks({ projectId }));
+          message.error(error as string);
+        }
+      }
+    }
   };
 
 
@@ -110,7 +136,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
     // Find the task to update
     const taskToUpdate = tasks.find(task => task.id === taskId);
     if (!taskToUpdate) return;
-    
+
     try {
       // Optimistically update the task in Redux state
       const updatedTask = { ...taskToUpdate, columnId: newColumnId };
@@ -118,7 +144,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
         type: 'tasks/updateTaskInList',
         payload: updatedTask
       });
-      
+
       // Call API to update on server
       await dispatch(moveTask({ taskId, targetColumnId: newColumnId })).unwrap();
       message.success('Task moved successfully');
@@ -167,7 +193,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
           type: 'tasks/updateTaskInList',
           payload: updatedTask
         });
-        
+
         // Remove fields that are not allowed in UpdateTaskDto
         const updateData = { ...values } as Record<string, unknown>;
         delete updateData.estimatedHours;
@@ -196,7 +222,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
         await dispatch(createTask(taskData)).unwrap();
         message.success('Task created successfully');
       }
-      
+
       setIsTaskFormVisible(false);
       setEditingTask(null);
     } catch (error) {
@@ -226,7 +252,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
         await dispatch(createKanbanColumn({ boardId: currentBoard?.id || boards[0]?.id || 1, data: columnData })).unwrap();
         message.success('Column created successfully');
       }
-      
+
       setIsColumnFormVisible(false);
       setEditingColumn(null);
     } catch (error) {
@@ -268,11 +294,11 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
             Manage and track your project tasks
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {/* Add Task Button */}
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => handleAddTask()}
           >
@@ -310,7 +336,7 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
       </div>
 
       {/* Task View */}
-      <Card 
+      <Card
         className="shadow-sm border-0"
         styles={{ body: { padding: '24px' } }}
       >
@@ -359,16 +385,16 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
       />
 
       {/* Task Detail Modal */}
-              <TaskDetailModal
-                task={selectedTask}
-                columns={columns}
-                visible={isTaskDetailVisible}
-                onClose={() => {
-                  setIsTaskDetailVisible(false);
-                  setSelectedTask(null);
-                }}
-                loading={isLoading}
-              />
+      <TaskDetailModal
+        task={selectedTask}
+        columns={columns}
+        visible={isTaskDetailVisible}
+        onClose={() => {
+          setIsTaskDetailVisible(false);
+          setSelectedTask(null);
+        }}
+        loading={isLoading}
+      />
     </div>
   );
 };

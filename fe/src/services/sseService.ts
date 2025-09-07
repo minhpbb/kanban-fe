@@ -14,35 +14,60 @@ class SSEService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private listeners: Map<string, Set<(data: SSEMessage) => void>> = new Map();
+  private activityListeners: Set<(data: any) => void> = new Set();
 
   connect(userId: number): void {
+    // If already connected to the same user, don't reconnect
+    if (this.eventSource && this.eventSource.readyState === EventSource.OPEN) {
+      console.log('🔄 SSE: Already connected, skipping reconnection');
+      return;
+    }
+    
     if (this.eventSource) {
+      console.log('🔄 SSE: Disconnecting existing connection before reconnecting');
       this.disconnect();
     }
 
     const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     const url = `${baseURL}/notifications/sse?userId=${userId}`;
     
+    console.log('🔌 Connecting to SSE:', url, 'for userId:', userId);
     this.eventSource = new EventSource(url, {
       withCredentials: true,
     });
 
     this.eventSource.onopen = () => {
-      console.log('SSE connection opened');
+      console.log('✅ SSE connection opened successfully');
       this.reconnectAttempts = 0;
     };
 
     this.eventSource.onmessage = (event) => {
       try {
+        console.log('📨 SSE: Raw message received:', event.data);
         const message: SSEMessage = JSON.parse(event.data);
+        console.log('📨 SSE: Parsed message:', message);
         this.handleMessage(message);
       } catch (error) {
-        console.error('Failed to parse SSE message:', error);
+        console.error('❌ SSE: Failed to parse message:', error);
+        console.error('❌ SSE: Raw data:', event.data);
       }
     };
 
+    // Handle activity updates
+    this.eventSource.addEventListener('activity', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('Activity update received:', data);
+        this.activityListeners.forEach(listener => listener(data));
+      } catch (error) {
+        console.error('Failed to parse activity message:', error);
+      }
+    });
+
     this.eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
+      console.error('❌ SSE connection error:', error);
+      console.error('SSE readyState:', this.eventSource?.readyState);
+      console.error('SSE URL:', this.eventSource?.url);
       this.handleReconnect();
     };
 
@@ -115,8 +140,13 @@ class SSEService {
   // Subscribe to notifications specifically
   onNotification(callback: (notification: Notification) => void): () => void {
     return this.subscribe('notification', (message) => {
-      if (message.data && typeof message.data === 'object' && 'id' in message.data) {
-        callback(message.data as Notification);
+      console.log('🔔 SSE: Processing notification message:', message);
+      // Backend sends notification data directly in the message, not in message.data
+      if (message && typeof message === 'object' && 'id' in message && message.type === 'notification') {
+        console.log('✅ SSE: Valid notification data found, calling callback');
+        callback(message as unknown as Notification);
+      } else {
+        console.log('❌ SSE: Invalid notification data structure:', message);
       }
     });
   }
@@ -124,6 +154,14 @@ class SSEService {
   // Subscribe to connection status
   onConnectionStatus(callback: (connected: boolean) => void): () => void {
     return this.subscribe('connected', () => callback(true));
+  }
+
+  // Subscribe to activity updates
+  onActivityUpdate(callback: (data: any) => void): () => void {
+    this.activityListeners.add(callback);
+    return () => {
+      this.activityListeners.delete(callback);
+    };
   }
 
   // Check if connected

@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { ActivityLog, ActivityType } from '../../entities/activity-log.entity';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class ActivityService {
   constructor(
     @InjectRepository(ActivityLog)
     private readonly activityLogRepository: Repository<ActivityLog>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   /**
@@ -34,7 +38,41 @@ export class ActivityService {
       isVisible,
     });
 
-    return await this.activityLogRepository.save(activityLog);
+    const savedActivity = await this.activityLogRepository.save(activityLog);
+
+    // Send realtime update via SSE
+    try {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      const activityData = {
+        id: savedActivity.id,
+        type: action,
+        description,
+        userId,
+        userName: user?.fullName || 'Unknown User',
+        userAvatar: user?.avatar,
+        metadata: metadata || {},
+        entityType,
+        entityId,
+        createdAt: savedActivity.createdAt.toISOString(),
+      };
+
+      // Import NotificationsService dynamically to avoid circular dependency
+      const { NotificationsService } = await import('../../notifications/notifications.service');
+      const notificationsService = new NotificationsService(
+        this.dataSource.getRepository('Notification'),
+        this.dataSource.getRepository('User'),
+        this.dataSource.getRepository('Project'),
+        this.dataSource.getRepository('ProjectMember'),
+        this.dataSource.getRepository('Task')
+      );
+      
+      await notificationsService.sendActivityUpdate(projectId, activityData);
+    } catch (error) {
+      console.error('Failed to send activity update via SSE:', error);
+      // Don't throw error, just log it
+    }
+
+    return savedActivity;
   }
 
   /**

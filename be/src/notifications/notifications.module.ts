@@ -5,11 +5,12 @@ import { NotificationsController } from './notifications.controller';
 import { Notification } from '../entities/notification.entity';
 import { User } from '../entities/user.entity';
 import { Project } from '../entities/project.entity';
+import { ProjectMember } from '../entities/project-member.entity';
 import { Task } from '../entities/task.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification, User, Project, Task]),
+    TypeOrmModule.forFeature([Notification, User, Project, ProjectMember, Task]),
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],

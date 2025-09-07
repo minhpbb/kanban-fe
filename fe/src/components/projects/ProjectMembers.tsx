@@ -64,6 +64,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
 
   const handleAddMember = async (values: { userId: number; role: ProjectRole }) => {
     try {
+      console.log('Adding member with data:', values);
       await dispatch(addProjectMember({ projectId, data: values })).unwrap();
       success('Member added successfully');
       setIsAddMemberModalVisible(false);
@@ -76,22 +77,50 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
   };
 
   const handleRemoveMember = async (userId: number) => {
-    Modal.confirm({
-      title: 'Remove Member',
-      content: 'Are you sure you want to remove this member from the project?',
-      okText: 'Yes, Remove',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: async () => {
+    console.log('Remove member clicked for userId:', userId, 'projectId:', projectId);
+    
+    try {
+      console.log('About to show Modal.confirm');
+      
+      // Test with alert first to see if basic dialogs work
+      const testResult = alert('Test: Are you sure you want to remove this member?');
+      console.log('Alert result:', testResult);
+      
+      if (testResult === undefined) { // alert always returns undefined
+        // Use window.confirm instead of Modal.confirm since Modal.confirm is not working
+        const confirmed = window.confirm('Are you sure you want to remove this member from the project?');
+        console.log('Window.confirm result:', confirmed);
+        
+        if (confirmed) {
+          try {
+            console.log('Confirming remove member:', { projectId, userId });
+            await dispatch(removeProjectMember({ projectId, userId })).unwrap();
+            success('Member removed successfully');
+            fetchMembers();
+          } catch (error) {
+            console.error('Error removing member:', error);
+            showError(error as string);
+          }
+        } else {
+          console.log('Remove member cancelled');
+        }
+      }
+    } catch (error) {
+      console.error('Error showing modal:', error);
+      // Fallback to window.confirm
+      const confirmed = window.confirm('Are you sure you want to remove this member from the project?');
+      if (confirmed) {
         try {
+          console.log('Confirming remove member (fallback):', { projectId, userId });
           await dispatch(removeProjectMember({ projectId, userId })).unwrap();
           success('Member removed successfully');
           fetchMembers();
         } catch (error) {
+          console.error('Error removing member:', error);
           showError(error as string);
         }
-      },
-    });
+      }
+    }
   };
 
   const getRoleColor = (role: string | undefined) => {
@@ -138,17 +167,25 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (record: ProjectMember) => (
-        <Space>
-          <Button 
-            type="text" 
-            icon={<DeleteOutlined />} 
-            size="small" 
-            danger
-            onClick={() => handleRemoveMember(record.userId)}
-          />
-        </Space>
-      ),
+      render: (record: ProjectMember) => {
+        console.log('Rendering actions for record:', record);
+        return (
+          <Space>
+            <Button 
+              type="text" 
+              icon={<DeleteOutlined />} 
+              size="small" 
+              danger
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Delete button clicked for record:', record);
+                handleRemoveMember(record.userId);
+              }}
+            />
+          </Space>
+        );
+      },
     },
   ];
 
@@ -207,6 +244,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
         open={isAddMemberModalVisible}
         onCancel={() => {
           setIsAddMemberModalVisible(false);
+          setSelectedUser(null);
           form.resetFields();
         }}
         footer={null}
@@ -218,6 +256,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
           onFinish={handleAddMember}
         >
           <Form.Item
+            name="userId"
             label="Select User"
             rules={[{ required: true, message: 'Please select a user' }]}
           >
@@ -229,13 +268,14 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
           </Form.Item>
 
           {selectedUser && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-center space-x-3">
                 <UserAvatar user={selectedUser} size="small" />
-                <div>
+                <div className="flex-1">
                   <div className="font-medium text-gray-900">{selectedUser.fullName}</div>
                   <div className="text-sm text-gray-500">@{selectedUser.username} • {selectedUser.email}</div>
                 </div>
+                <div className="text-xs text-blue-600 font-medium">Selected</div>
               </div>
             </div>
           )}
@@ -260,6 +300,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 htmlType="submit"
                 className="flex-1"
                 size="large"
+                disabled={!selectedUser}
               >
                 Add Member
               </Button>
@@ -267,6 +308,7 @@ const ProjectMembers: React.FC<ProjectMembersProps> = ({ projectId }) => {
                 htmlType="button"
                 onClick={() => {
                   setIsAddMemberModalVisible(false);
+                  setSelectedUser(null);
                   form.resetFields();
                 }}
                 size="large"

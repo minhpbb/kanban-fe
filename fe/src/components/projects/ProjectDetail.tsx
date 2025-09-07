@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, Spin, Alert } from 'antd';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchProjectById } from '@/store/slices/projectSlice';
+import { useSSE } from '@/hooks';
 import ProjectOverview from './ProjectOverview';
 import ProjectMembers from './ProjectMembers';
 import ProjectTaskManagement from './ProjectTaskManagement';
@@ -15,7 +16,11 @@ interface ProjectDetailProps {
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId }) => {
   const dispatch = useAppDispatch();
   const { currentProject, isLoading, error } = useAppSelector((state) => state.projects);
+  const { user } = useAppSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Initialize SSE connection for real-time updates
+  useSSE(user?.id);
 
   useEffect(() => {
     // Fetch project details when component mounts

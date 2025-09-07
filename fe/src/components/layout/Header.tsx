@@ -37,6 +37,7 @@ const Header: React.FC<HeaderProps> = ({
   
   // Debug user data
   console.log('Header - User data:', user);
+  console.log('Header - User ID:', user?.id);
   
   const tabs = [
     { key: 'kanban', label: 'Kanban' },

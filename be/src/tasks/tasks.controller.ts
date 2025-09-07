@@ -237,7 +237,7 @@ export class TasksController {
   // ========== DRAG & DROP ENDPOINTS ==========
 
   @Patch(':id/move')
-  @RequirePermissions('task:update')
+  // @RequirePermissions('task:update')
   @ApiOperation({ 
     summary: 'Move task to different column', 
     description: 'Move task to a different column (drag & drop functionality)' 

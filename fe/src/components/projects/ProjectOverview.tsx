@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Avatar, Tag, Button, Statistic, Row, Col, Modal, DatePicker, Spin, Alert } from 'antd';
+import { Card, Avatar, Tag, Button, Statistic, Row, Col, Modal, DatePicker, Spin, Alert, Select, Input } from 'antd';
 import { 
   UserOutlined, 
   CalendarOutlined, 
   TeamOutlined, 
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  FilterOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import { Project } from '@/types/api';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -19,7 +21,7 @@ interface ProjectOverviewProps {
 
 const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.projects);
+  const { isLoading, error, currentProject } = useAppSelector((state) => state.projects);
   const [isActivityModalVisible, setIsActivityModalVisible] = useState(false);
   const [overviewData, setOverviewData] = useState<{
     statistics?: {
@@ -29,13 +31,44 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
       overdueTasks: number;
     };
   } | null>(null);
-  const [activities, setActivities] = useState<Array<{
-    id: number;
-    description: string;
-    userName: string;
-    userAvatar?: string;
-    createdAt: string;
-  }>>([]);
+  
+  // Filter states
+  const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all');
+  const [searchFilter, setSearchFilter] = useState<string>('');
+  const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  
+  // Use Redux state for activities instead of local state
+  const allActivities = currentProject?.activities || [];
+  
+  // Debug: Log activities data
+  console.log('🔍 ProjectOverview - allActivities:', allActivities);
+  console.log('🔍 ProjectOverview - currentProject:', currentProject);
+  
+  // Filter activities
+  const filteredActivities = allActivities.filter(activity => {
+    // Type filter
+    if (activityTypeFilter !== 'all' && activity.type !== activityTypeFilter) {
+      return false;
+    }
+    
+    // Search filter
+    if (searchFilter && !activity.description.toLowerCase().includes(searchFilter.toLowerCase()) &&
+        !activity.userName.toLowerCase().includes(searchFilter.toLowerCase())) {
+      return false;
+    }
+    
+    // Date range filter
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      const activityDate = new Date(activity.createdAt);
+      const startDate = dateRange[0].startOf('day').toDate();
+      const endDate = dateRange[1].endOf('day').toDate();
+      if (activityDate < startDate || activityDate > endDate) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
 
   useEffect(() => {
     // Fetch project overview data
@@ -50,13 +83,15 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
 
     const fetchActivities = async () => {
       try {
+        console.log('🔄 Fetching activities for project:', project.id);
         const activitiesData = await dispatch(getProjectActivities({ 
           projectId: project.id, 
           limit: 10 
         })).unwrap();
-        setActivities(activitiesData.activities || []);
+        console.log('✅ Activities fetched:', activitiesData);
+        // Activities will be automatically updated via Redux when SSE receives new data
       } catch (error) {
-        console.error('Failed to fetch project activities:', error);
+        console.error('❌ Failed to fetch project activities:', error);
       }
     };
 
@@ -82,6 +117,34 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
       case 'archived': return 'orange';
       case 'deleted': return 'red';
       default: return 'default';
+    }
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'task_moved': return '🔄';
+      case 'task_created': return '➕';
+      case 'task_updated': return '✏️';
+      case 'task_deleted': return '🗑️';
+      case 'member_added': return '👥';
+      case 'member_removed': return '👋';
+      case 'project_created': return '📁';
+      case 'project_updated': return '📝';
+      default: return '📋';
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'task_moved': return '#1890ff';
+      case 'task_created': return '#52c41a';
+      case 'task_updated': return '#faad14';
+      case 'task_deleted': return '#ff4d4f';
+      case 'member_added': return '#722ed1';
+      case 'member_removed': return '#f5222d';
+      case 'project_created': return '#13c2c2';
+      case 'project_updated': return '#eb2f96';
+      default: return '#8c8c8c';
     }
   };
 
@@ -209,12 +272,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
         styles={{ body: { padding: '32px 24px' } }}
       >
         <div className="space-y-4">
-          {activities.length === 0 ? (
+          {allActivities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <p>No recent activities</p>
             </div>
           ) : (
-            activities.map((activity) => (
+            allActivities.slice(0, 5).map((activity) => (
               <div key={activity.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
                 <Avatar 
                   size="default" 
@@ -226,7 +289,12 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
                   <p className="text-sm text-gray-700 font-medium">
                     <span className="font-semibold text-gray-900">{activity.userName}</span> {activity.description}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{formatDate(activity.createdAt)}</p>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <Tag color={getActivityColor(activity.type)}>
+                      {activity.type.replace('_', ' ').toUpperCase()}
+                    </Tag>
+                    <span className="text-xs text-gray-500">{formatDate(activity.createdAt)}</span>
+                  </div>
                 </div>
               </div>
             ))
@@ -240,29 +308,87 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ project }) => {
         open={isActivityModalVisible}
         onCancel={() => setIsActivityModalVisible(false)}
         footer={null}
-        width={800}
+        width={1000}
       >
         <div className="space-y-4">
-          <div className="flex items-center space-x-4 mb-6">
-            <DatePicker.RangePicker 
-              placeholder={['Start Date', 'End Date']}
-              className="w-full"
+          {/* Filter Controls */}
+          <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <FilterOutlined className="text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Filters:</span>
+            </div>
+            
+            <Select
+              value={activityTypeFilter}
+              onChange={setActivityTypeFilter}
+              style={{ width: 150 }}
+              size="small"
+            >
+              <Select.Option value="all">All Types</Select.Option>
+              <Select.Option value="task_moved">Task Moved</Select.Option>
+              <Select.Option value="member_added">Member Added</Select.Option>
+              <Select.Option value="member_removed">Member Removed</Select.Option>
+              <Select.Option value="task_created">Task Created</Select.Option>
+              <Select.Option value="task_updated">Task Updated</Select.Option>
+              <Select.Option value="task_deleted">Task Deleted</Select.Option>
+            </Select>
+            
+            <Input
+              placeholder="Search activities..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              prefix={<SearchOutlined />}
+              style={{ width: 200 }}
+              size="small"
             />
-            {/* <Button type="primary">Filter</Button> */}
+            
+            <DatePicker.RangePicker
+              value={dateRange}
+              onChange={setDateRange}
+              size="small"
+              placeholder={['Start Date', 'End Date']}
+            />
+            
+            <Button 
+              size="small" 
+              onClick={() => {
+                setActivityTypeFilter('all');
+                setSearchFilter('');
+                setDateRange(null);
+              }}
+            >
+              Clear
+            </Button>
           </div>
           
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {[...Array(10)].map((_, index) => (
-              <div key={index} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
-                <Avatar size="default" icon={<UserOutlined />} className="bg-gray-500" />
-                <div className="px-4 flex-1">
-                  <p className="text-sm text-gray-700 font-medium">
-                    <span className="font-semibold text-gray-900">User {index + 1}</span> performed action {index + 1}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">{index + 1} days ago</p>
-                </div>
+            {filteredActivities.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>{allActivities.length === 0 ? 'No activities found' : 'No activities match your filters'}</p>
               </div>
-            ))}
+            ) : (
+              filteredActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                  <Avatar 
+                    size="small" 
+                    icon={<UserOutlined />} 
+                    className="bg-gray-500"
+                    src={activity.userAvatar}
+                  />
+                  <div className="px-4 flex-1">
+                    <p className="text-sm text-gray-700 font-medium">
+                      <span className="font-semibold text-gray-900">{activity.userName}</span> {activity.description}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Tag color={getActivityColor(activity.type)}>
+                        {activity.type.replace('_', ' ').toUpperCase()}
+                      </Tag>
+                      <span className="text-xs text-gray-500">{formatDate(activity.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </Modal>

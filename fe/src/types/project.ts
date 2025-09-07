@@ -36,6 +36,7 @@ export interface Project {
     defaultTaskStatuses: string[];
     taskLabels: string[];
   };
+  activities?: ProjectActivity[];
   createdAt: string;
   updatedAt: string;
 }
@@ -58,14 +59,17 @@ export interface ProjectOverview {
 
 export interface ProjectActivity {
   id: number;
-  projectId: number;
+  projectId?: number;
   userId: number;
-  action: string;
+  type: string;
   description: string;
+  userName: string;
+  userAvatar?: string;
+  username?: string;
   metadata?: Record<string, unknown>;
   entityType?: string;
   entityId?: number;
-  isVisible: boolean;
+  isVisible?: boolean;
   createdAt: string;
   user?: User;
 }

@@ -5,6 +5,7 @@ import { ServerResponse } from 'http';
 import { Notification, NotificationType, NotificationStatus } from '../entities/notification.entity';
 import { User } from '../entities/user.entity';
 import { Project } from '../entities/project.entity';
+import { ProjectMember } from '../entities/project-member.entity';
 import { Task } from '../entities/task.entity';
 
 export interface NotificationData {
@@ -29,6 +30,8 @@ export class NotificationsService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepository: Repository<ProjectMember>,
     @InjectRepository(Task)
     private readonly taskRepository: Repository<Task>,
   ) {}
@@ -40,9 +43,13 @@ export class NotificationsService {
       this.sseClients.set(userId, []);
     }
     this.sseClients.get(userId)!.push(response);
+    console.log(`✅ SSE: Client added to connections for userId: ${userId}`);
+    console.log(`📊 SSE: Total clients for userId ${userId}:`, this.sseClients.get(userId)!.length);
+    console.log(`📊 SSE: Total user connections:`, this.sseClients.size);
 
     // Remove client when connection closes
     response.on('close', () => {
+      console.log(`🔌 SSE: Connection closed for userId: ${userId}`);
       this.removeSSEClient(userId, response);
     });
   }
@@ -53,9 +60,11 @@ export class NotificationsService {
       const index = clients.indexOf(response);
       if (index > -1) {
         clients.splice(index, 1);
+        console.log(`🗑️ SSE: Client removed for userId: ${userId}, remaining: ${clients.length}`);
       }
       if (clients.length === 0) {
         this.sseClients.delete(userId);
+        console.log(`🗑️ SSE: All clients removed for userId: ${userId}`);
       }
     }
   }
@@ -394,6 +403,15 @@ export class NotificationsService {
     return { message: 'All notifications marked as read' };
   }
 
+  async deleteNotification(notificationId: number, userId: number): Promise<{ message: string }> {
+    await this.notificationRepository.delete({
+      id: notificationId,
+      userId,
+    });
+
+    return { message: 'Notification deleted successfully' };
+  }
+
   async archiveNotification(notificationId: number, userId: number): Promise<{ message: string }> {
     await this.notificationRepository.update(
       { id: notificationId, userId },
@@ -409,26 +427,79 @@ export class NotificationsService {
   // ========== SSE NOTIFICATION SENDING ==========
 
   private async sendSSENotification(userId: number, notification: Notification): Promise<void> {
+    console.log('📤 SSE: Attempting to send notification to userId:', userId);
     const clients = this.sseClients.get(userId);
+    console.log('📤 SSE: Found clients:', clients?.length || 0);
+    
     if (clients && clients.length > 0) {
       const sseData = `data: ${JSON.stringify({
+        type: 'notification',
         id: notification.id,
-        type: notification.type,
+        notificationType: notification.type,
         title: notification.title,
         message: notification.message,
         metadata: notification.metadata,
         createdAt: notification.createdAt,
       })}\n\n`;
 
+      console.log('📤 SSE: Sending notification data:', sseData);
+
       // Send to all connected clients for this user
-      clients.forEach(client => {
+      clients.forEach((client, index) => {
         try {
           client.write(sseData);
+          console.log(`✅ SSE: Notification sent to client ${index + 1}/${clients.length}`);
         } catch (error) {
+          console.error(`❌ SSE: Failed to send to client ${index + 1}:`, error);
           // Remove broken connections
           this.removeSSEClient(userId, client);
         }
       });
+    } else {
+      console.log('⚠️ SSE: No clients found for userId:', userId);
     }
+  }
+
+  // Send activity update to all project members
+  async sendActivityUpdate(projectId: number, activity: any): Promise<void> {
+    // Get all active project members
+    const projectMembers = await this.projectMemberRepository.find({
+      where: { projectId, isActive: true },
+      select: ['userId']
+    });
+
+    const memberUserIds = projectMembers.map(member => member.userId);
+
+    // Send to all connected clients of project members
+    memberUserIds.forEach(userId => {
+      const clients = this.sseClients.get(userId);
+      if (clients && clients.length > 0) {
+        const sseData = `data: ${JSON.stringify({
+          type: 'activity',
+          projectId,
+          activity: {
+            id: activity.id,
+            type: activity.type,
+            description: activity.description,
+            userId: activity.userId,
+            userName: activity.userName,
+            userAvatar: activity.userAvatar,
+            metadata: activity.metadata,
+            entityType: activity.entityType,
+            entityId: activity.entityId,
+            createdAt: activity.createdAt,
+          }
+        })}\n\n`;
+
+        clients.forEach(client => {
+          try {
+            client.write(sseData);
+          } catch (error) {
+            // Remove broken connections
+            this.removeSSEClient(userId, client);
+          }
+        });
+      }
+    });
   }
 }

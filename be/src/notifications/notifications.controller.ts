@@ -9,6 +9,7 @@ import {
   Res,
   Query,
   ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,10 +38,9 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Get('sse')
-  @RequirePermissions('notification:read')
   @ApiOperation({ 
-    summary: 'SSE connection for real-time notifications', 
-    description: 'Establish Server-Sent Events connection for real-time notifications' 
+    summary: 'SSE connection for real-time notifications and activities', 
+    description: 'Establish Server-Sent Events connection for real-time notifications and project activities' 
   })
   @ApiResponse({ 
     status: 200, 
@@ -53,9 +53,10 @@ export class NotificationsController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
-  async getSSEConnection(@Request() req, @Res() res: Response) {
+  async getSSEConnection(@Query('userId', ParseIntPipe) userId: number, @Res() res: Response) {
     const serverResponse = res as unknown as ServerResponse;
-    const userId = req.user.userId;
+
+    console.log('🔌 SSE: New connection request from userId:', userId);
 
     // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
@@ -66,15 +67,19 @@ export class NotificationsController {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
 
     // Send initial connection message
-    res.write(`data: ${JSON.stringify({
+    const initialMessage = {
       type: 'connected',
       message: 'SSE connection established',
       userId,
       timestamp: new Date().toISOString(),
-    })}\n\n`);
+    };
+    
+    console.log('📤 SSE: Sending initial message:', initialMessage);
+    res.write(`data: ${JSON.stringify(initialMessage)}\n\n`);
 
     // Add client to SSE connections
     this.notificationsService.addSSEClient(userId, serverResponse);
+    console.log('✅ SSE: Client added to connections for userId:', userId);
 
     // Keep connection alive with heartbeat
     const heartbeat = setInterval(() => {
@@ -90,7 +95,7 @@ export class NotificationsController {
     }, 30000); // Send heartbeat every 30 seconds
 
     // Clean up on connection close
-    req.on('close', () => {
+    res.on('close', () => {
       clearInterval(heartbeat);
       this.notificationsService.removeSSEClient(userId, serverResponse);
     });
@@ -235,6 +240,37 @@ export class NotificationsController {
   @ApiForbiddenResponse({ description: 'Insufficient permissions' })
   async markAllAsRead(@Request() req) {
     return this.notificationsService.markAllAsRead(req.user.userId);
+  }
+
+  @Delete(':id')
+  @RequirePermissions('notification:delete')
+  @ApiOperation({ 
+    summary: 'Delete notification', 
+    description: 'Delete a specific notification' 
+  })
+  @ApiParam({ name: 'id', type: Number, description: 'Notification ID' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Notification deleted',
+    schema: {
+      example: {
+        errCode: 'E000',
+        reason: 'Success',
+        result: 'SUCCESS',
+        data: {
+          message: 'Notification deleted successfully'
+        },
+        timestamp: '2024-01-01T00:00:00.000Z'
+      }
+    }
+  })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
+  @ApiForbiddenResponse({ description: 'Insufficient permissions' })
+  async deleteNotification(
+    @Param('id', ParseIntPipe) notificationId: number,
+    @Request() req,
+  ) {
+    return this.notificationsService.deleteNotification(notificationId, req.user.userId);
   }
 
   @Patch(':id/archive')

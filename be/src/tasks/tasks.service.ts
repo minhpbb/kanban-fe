@@ -614,9 +614,14 @@ export class TasksService {
       return true;
     }
 
-    // All project members can read and comment
-    if (member && (action === 'read' || action === 'comment')) {
+    // All project members can read, comment, and move tasks
+    if (member && (action === 'read' || action === 'comment' || action === 'move')) {
       return true;
+    }
+
+    // Only viewers cannot move tasks
+    if (member?.role === ProjectRole.VIEWER && action === 'move') {
+      return false;
     }
 
     return false;

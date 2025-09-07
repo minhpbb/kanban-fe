@@ -27,7 +27,7 @@ export class ProjectsService {
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
     private readonly activityService: ActivityService,
-  ) {}
+  ) { }
 
   async createProject(createProjectDto: CreateProjectDto, ownerId: number): Promise<Project> {
     const queryRunner = this.dataSource.createQueryRunner();
@@ -168,7 +168,7 @@ export class ProjectsService {
       userId,
       ActivityType.PROJECT_UPDATED,
       `Project "${oldName}" was updated`,
-      { 
+      {
         projectId: project.id,
         oldName,
         newName: savedProject.name,
@@ -219,7 +219,7 @@ export class ProjectsService {
       const boards = await queryRunner.manager.find('kanban_boards', {
         where: { projectId: id }
       });
-      
+
       if (boards.length > 0) {
         const boardIds = boards.map(board => (board as any).id);
         await queryRunner.manager.update(
@@ -279,22 +279,22 @@ export class ProjectsService {
       const boards = await queryRunner.manager.find('kanban_boards', {
         where: { projectId: id }
       });
-      
+
       if (boards.length > 0) {
         const boardIds = boards.map(board => (board as any).id);
-        
+
         // Hard delete all tasks in all boards
         await queryRunner.manager.delete(
           'tasks',
           { boardId: boardIds as any }
         );
-        
+
         // Hard delete all columns in all boards
         await queryRunner.manager.delete(
           'kanban_columns',
           { boardId: boardIds as any }
         );
-        
+
         // Hard delete all boards
         await queryRunner.manager.delete(
           'kanban_boards',
@@ -355,11 +355,13 @@ export class ProjectsService {
     }
 
     // Check if user is already a member
+    console.log('Checking existing member for projectId:', projectId, 'memberUserId:', memberUserId);
     const existingMember = await this.projectMemberRepository.findOne({
-      where: { projectId, userId: memberUserId },
+      where: { projectId, userId: memberUserId, isActive: true },
     });
 
     if (existingMember) {
+      console.log('Existing member found:', existingMember);
       throw new ConflictException('User is already a member of this project');
     }
 
@@ -369,6 +371,7 @@ export class ProjectsService {
       userId: memberUserId,
       role,
       isActive: true,
+      joinedAt: new Date(),
     });
 
     await this.projectMemberRepository.save(projectMember);
@@ -379,7 +382,7 @@ export class ProjectsService {
       currentUserId,
       ActivityType.MEMBER_ADDED,
       `User "${user.fullName}" was added to the project as ${role}`,
-      { 
+      {
         projectId,
         memberId: projectMember.id,
         memberUserId,
@@ -420,7 +423,36 @@ export class ProjectsService {
     // Remove member
     await this.projectMemberRepository.update(
       { projectId, userId: memberUserId },
-      { isActive: false }
+      { isActive: false, leftAt: new Date() }
+    );
+
+    // Auto unassign all tasks assigned to this member in this project
+    await this.dataSource
+      .createQueryBuilder()
+      .update('tasks')
+      .set({ 
+        assigneeId: null,
+        updatedAt: new Date()
+      })
+      .where('projectId = :projectId', { projectId })
+      .andWhere('assigneeId = :assigneeId', { assigneeId: memberUserId })
+      .execute();
+
+    // Log activity
+    const user = await this.userRepository.findOne({ where: { id: memberUserId } });
+    await this.activityService.logActivity(
+      projectId,
+      currentUserId,
+      ActivityType.MEMBER_REMOVED,
+      `User "${user?.fullName || 'Unknown User'}" was removed from the project`,
+      {
+        projectId,
+        memberUserId,
+        memberName: user?.fullName || 'Unknown User',
+        unassignedTasks: true,
+      },
+      'member',
+      null,
     );
 
     // Send notification to the removed member
@@ -541,7 +573,7 @@ export class ProjectsService {
       .andWhere('t.deletedAt IS NULL')
       .getRawOne();
 
-    const completionPercentage = completionStats.totalActiveTasks > 0 
+    const completionPercentage = completionStats.totalActiveTasks > 0
       ? Math.round((completionStats.completedTasks / completionStats.totalActiveTasks) * 100)
       : 0;
 

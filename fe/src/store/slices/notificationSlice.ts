@@ -108,9 +108,19 @@ const notificationSlice = createSlice({
       state.error = null;
     },
     addNotification: (state, action: PayloadAction<Notification>) => {
-      state.notifications.unshift(action.payload);
-      if (action.payload.status === NotificationStatus.UNREAD) {
+      console.log('📝 Redux: Adding notification to state:', action.payload);
+      console.log('📝 Redux: Notification status:', action.payload.status);
+      
+      // Ensure notification has proper status
+      const notification = {
+        ...action.payload,
+        status: action.payload.status || NotificationStatus.UNREAD
+      };
+      
+      state.notifications.unshift(notification);
+      if (notification.status === NotificationStatus.UNREAD) {
         state.unreadCount += 1;
+        console.log('📊 Redux: Unread count updated to:', state.unreadCount);
       }
       state.pagination.total += 1;
     },

@@ -185,6 +185,20 @@ const projectSlice = createSlice({
     removeProjectFromList: (state, action: PayloadAction<number>) => {
       state.projects = state.projects.filter(p => p.id !== action.payload);
     },
+    addActivity: (state, action: PayloadAction<{ projectId: number; activity: any }>) => {
+      // Add activity to the current project's activities if it matches
+      if (state.currentProject && state.currentProject.id === action.payload.projectId) {
+        if (!state.currentProject.activities) {
+          state.currentProject.activities = [];
+        }
+        // Add to beginning of array (most recent first)
+        state.currentProject.activities.unshift(action.payload.activity);
+        // Keep only last 50 activities
+        if (state.currentProject.activities.length > 50) {
+          state.currentProject.activities = state.currentProject.activities.slice(0, 50);
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -275,9 +289,21 @@ const projectSlice = createSlice({
           state.currentProject = null;
         }
         state.pagination.total -= 1;
+      })
+      
+      // Get project activities
+      .addCase(getProjectActivities.fulfilled, (state, action) => {
+        console.log('📝 Redux: getProjectActivities fulfilled:', action.payload);
+        if (state.currentProject) {
+          state.currentProject.activities = action.payload.activities || [];
+          console.log('📝 Redux: Updated currentProject.activities:', state.currentProject.activities);
+        }
+      })
+      .addCase(getProjectActivities.rejected, (state, action) => {
+        console.error('❌ Redux: getProjectActivities rejected:', action.payload);
       });
   },
 });
 
-export const { clearError, setCurrentProject, updateProjectInList, removeProjectFromList } = projectSlice.actions;
+export const { clearError, setCurrentProject, updateProjectInList, removeProjectFromList, addActivity } = projectSlice.actions;
 export default projectSlice.reducer;
