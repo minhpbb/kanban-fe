@@ -21,8 +21,6 @@ kanban/
 ```
 
 ## 🚀 Quick Start
-
-### Option 1: Run Everything
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -39,9 +37,6 @@ npm install
 npm run dev
 ```
 
-### Option 2: Run Individual Components
-- **Frontend Only**: See [Frontend README](./fe/README.md)
-- **Backend Only**: See [Backend README](./be/README.md)
 
 ## 📚 Documentation
 
@@ -86,82 +81,3 @@ npm run dev
 - **Authentication**: JWT with refresh tokens
 - **Real-time**: Server-Sent Events
 - **Documentation**: Swagger/OpenAPI
-
-## 🌐 Access Points
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| 🎨 **Frontend** | http://localhost:3000 | Main application interface |
-| ⚙️ **Backend API** | http://localhost:3001 | REST API endpoints |
-| 📚 **API Docs** | http://localhost:3001/api | Swagger documentation |
-
-## 🚀 Development
-
-### Prerequisites
-- Node.js 18+
-- MySQL 8.0+
-- npm or yarn
-
-### Getting Started
-1. **Clone the repository**
-2. **Set up Backend**: Follow [Backend Setup](./be/README.md#-setup)
-3. **Set up Frontend**: Follow [Frontend Setup](./fe/README.md#-setup)
-4. **Start Development**: Run both services
-
-### Project Structure
-```
-kanban/
-├── fe/                    # Frontend (Next.js)
-│   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── pages/         # Next.js pages
-│   │   ├── store/         # Redux store
-│   │   ├── services/      # API services
-│   │   └── types/         # TypeScript types
-│   └── README.md          # Frontend documentation
-├── be/                    # Backend (NestJS)
-│   ├── src/
-│   │   ├── auth/          # Authentication
-│   │   ├── users/         # User management
-│   │   ├── projects/      # Project management
-│   │   ├── tasks/         # Task management
-│   │   └── kanban/        # Kanban boards
-│   └── README.md          # Backend documentation
-└── README.md              # This file
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see individual project READMEs for contribution guidelines:
-
-- **Frontend Contributions**: [Frontend Contributing](./fe/README.md#-contributing)
-- **Backend Contributions**: [Backend Contributing](./be/README.md#-contributing)
-
-### General Guidelines
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **NestJS** for the excellent backend framework
-- **Next.js** for the powerful React framework
-- **Ant Design** for the beautiful UI components
-- **TypeORM** for the robust database management
-
----
-
-**Built with ❤️ by the development team**
-
-## 📞 Support
-
-For questions and support:
-- **Frontend Issues**: [Frontend Issues](./fe/README.md#-support)
-- **Backend Issues**: [Backend Issues](./be/README.md#-support)
-- **General Questions**: Open an issue in this repository
