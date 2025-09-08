@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Upload, Avatar, DatePicker, Switch, Select } from 'antd';
-import { UserOutlined, UploadOutlined, EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { createProject } from '@/store/slices/projectSlice';
-import { useRouter } from 'next/navigation';
-import dayjs from 'dayjs';
+import { UploadOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Button, Card, DatePicker, Form, Input, message, Select, Switch, Upload } from 'antd';
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload';
+import dayjs from 'dayjs';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 
 interface CreateProjectFormProps {
   onSuccess?: () => void;

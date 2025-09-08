@@ -130,8 +130,6 @@ erDiagram
         boolean isEmailVerified
         timestamp createdAt
         timestamp updatedAt
-    }
-
     refresh_tokens {
         int id PK
         int userId FK
