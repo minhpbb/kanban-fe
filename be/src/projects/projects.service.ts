@@ -128,9 +128,16 @@ export class ProjectsService {
     return { projects, total };
   }
 
-  async findProjectById(id: number, userId: number): Promise<Project> {
+  async findProjectById(id: number, userId: number, includeDeleted: boolean = false): Promise<Project> {
+    const whereCondition: any = { id };
+    
+    // Only filter by status if not including deleted projects
+    if (!includeDeleted) {
+      whereCondition.status = 'active';
+    }
+
     const project = await this.projectRepository.findOne({
-      where: { id, status: 'active' as any },
+      where: whereCondition,
     });
 
     if (!project) {
@@ -184,7 +191,12 @@ export class ProjectsService {
   // ========== SOFT DELETE METHODS ==========
 
   async softDeleteProject(id: number, userId: number): Promise<{ message: string }> {
-    const project = await this.findProjectById(id, userId);
+    const project = await this.findProjectById(id, userId, true); // Include deleted projects
+
+    // Check if project is already deleted
+    if (project.status === 'deleted') {
+      throw new NotFoundException('Project not found');
+    }
 
     // Only owner can delete project
     if (project.ownerId !== userId) {
@@ -256,7 +268,7 @@ export class ProjectsService {
   // ========== HARD DELETE METHODS ==========
 
   async hardDeleteProject(id: number, userId: number): Promise<{ message: string }> {
-    const project = await this.findProjectById(id, userId);
+    const project = await this.findProjectById(id, userId, true); // Include deleted projects
 
     // Only owner can delete project
     if (project.ownerId !== userId) {

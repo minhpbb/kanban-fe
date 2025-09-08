@@ -35,9 +35,17 @@ const ProjectsPage: React.FC = () => {
     
     if (confirmed) {
       try {
-        await dispatch(deleteProject(projectId)).unwrap();
+        console.log('🗑️ Deleting project:', projectId);
+        const result = await dispatch(deleteProject(projectId)).unwrap();
+        console.log('✅ Delete result:', result);
         success('Project deleted successfully');
+        
+        // Refresh projects list after deletion
+        console.log('🔄 Refreshing projects list...');
+        const refreshResult = await dispatch(fetchProjects({})).unwrap();
+        console.log('📋 Refreshed projects:', refreshResult);
       } catch (error) {
+        console.error('❌ Delete error:', error);
         showError(error as string);
       }
     }

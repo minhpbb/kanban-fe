@@ -9,7 +9,7 @@ interface ColumnFormProps {
   onCancel: () => void;
   onSubmit: (values: Partial<KanbanColumn>) => void;
   column?: KanbanColumn | null;
-  boardId: number;
+  // boardId: number; // Not needed for update operations
   loading?: boolean;
 }
 
@@ -18,7 +18,7 @@ const ColumnForm: React.FC<ColumnFormProps> = ({
   onCancel,
   onSubmit,
   column,
-  boardId,
+  // boardId,
   loading = false
 }) => {
   const [form] = Form.useForm();
@@ -77,17 +77,16 @@ const ColumnForm: React.FC<ColumnFormProps> = ({
       } : undefined;
 
       const columnData = {
-        ...values,
-        boardId,
+        name: values.name,
+        description: values.description,
+        type: values.type,
+        color: values.color,
+        order: values.order,
+        maxTasks: values.maxTasks,
+        isActive: values.isActive,
+        isWipLimit: values.isWipLimit,
         wipSettings,
-        // Remove form-specific fields
-        wipLimit: undefined,
-        warningThreshold: undefined,
-        // For edit mode, keep existing fields
-        ...(column && {
-          id: column.id,
-          createdAt: column.createdAt,
-        }),
+        rules: values.rules,
       };
 
       onSubmit(columnData);

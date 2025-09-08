@@ -380,7 +380,6 @@ const ProjectTaskManagement: React.FC<ProjectTaskManagementProps> = ({
         }}
         onSubmit={handleColumnFormSubmit}
         column={editingColumn}
-        boardId={currentBoard?.id || boards[0]?.id || 1}
         loading={isLoading}
       />
 
